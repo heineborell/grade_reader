@@ -2,7 +2,7 @@ import cv2
 from manip import image_manip
 
 # read image make it grayscaled
-img_path = "data/my_test.jpg"
+img_path = "data/test_2.jpg"
 
 img = cv2.imread(img_path)
 morph = image_manip(img_path)
@@ -11,10 +11,12 @@ morph = image_manip(img_path)
 # # get contours
 result = img.copy()
 centers = []
-contours = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-contours = contours[0] if len(contours) == 2 else contours[1]
-print("count:", len(contours))
-print("")
+
+# so this guy return contours which are the boundaries between black and white regions. But it basically returns bunch of stuff depending on the opencv you use but using return-2 we guarantee it returns the contours
+contour_results = cv2.findContours(morph, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+contours = contour_results[-2]
+
+# here using first and zeroth moments we find the center for each contour, then draw a circle at each point
 for i, cntr in enumerate(contours):
     M = cv2.moments(cntr)
     cx = int(M["m10"] / M["m00"])
@@ -24,16 +26,7 @@ for i, cntr in enumerate(contours):
     pt = (cx, cy)
     print("circle #:", i, "center:", pt)
 
-# print list of centers
-# print(centers)
-#
-# # save results
-# cv2.imwrite("omr_sheet_thresh.png", thresh)
-# cv2.imwrite("omr_sheet_morph.png", morph)
-# cv2.imwrite("omr_sheet_result.png", result)
-# # show results
-cv2.imshow("morph", morph)
-# cv2.imshow("result", result)
+cv2.imshow("result", result)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
