@@ -1,6 +1,6 @@
 [build-system]
-requires=["setuptools","setuptools-scm"]
-build-backend="setuptools.build_meta"
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "grade-reader"
@@ -8,4 +8,4 @@ version = "0.1.0"
 description = "some opencv stuff to make my life better"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["opencv-python", "numpy"]
+dependencies = ["opencv-python", "numpy", "matplotlib"]
