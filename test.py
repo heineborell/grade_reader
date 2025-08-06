@@ -1,13 +1,19 @@
 import cv2
 
 # Load the image in grayscale
-img = cv2.imread("image.jpg", cv2.IMREAD_GRAYSCALE)
+cap = cv2.VideoCapture(0)
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
-# Apply binary thresholding
-ret, thresh_img = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+while True:
+    _, img = cap.read()
 
-# Display the original and thresholded images
-cv2.imshow("Original Image", img)
-cv2.imshow("Thresholded Image", thresh_img)
-cv2.waitKey(0)
+    cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Window", 1200, 800)
+    cv2.imshow("Window", img)
+    key = cv2.waitKey(1)  # wait 1 ms then move to the next frame
+    if key == 27:
+        break
+
+cap.release()
 cv2.destroyAllWindows()
