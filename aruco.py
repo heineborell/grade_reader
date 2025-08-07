@@ -19,6 +19,7 @@ marker_image = cv2.aruco.generateImageMarker(dictionary, marker_id, marker_size_
 # Add white padding for detection (e.g., 100 pixels)
 padded_marker_image = np.pad(marker_image, pad_width=350, constant_values=255)
 img = padded_marker_image
+img = cv2.imread("data/aruco_test.jpg")
 
 # ArUco detection
 corners, ids, _ = detector.detectMarkers(img)
@@ -48,11 +49,16 @@ if ids is not None:
 
     # Define the bounding box (relative to marker-aligned space)
     form_box = np.array(
-        [[100, 150], [600, 150], [600, 450], [100, 450]], dtype=np.float32
+        [[0, 150], [800, 150], [800, 1050], [0, 1050]], dtype=np.float32
     )
 
     # Transform back to image space
     form_box_img = cv2.perspectiveTransform(form_box[None, :, :], np.linalg.inv(M))[0]
+    crop_img = img[
+        np.int32(form_box_img[0][1]) : np.int32(form_box_img[2][1]),
+        np.int32(form_box_img[0][0]) : np.int32(form_box_img[1][0]),
+    ]
+    print(form_box_img)
 
     # Draw the bounding box
     for i in range(4):
