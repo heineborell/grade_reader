@@ -12,13 +12,9 @@ detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
 marker_id = 3
 marker_size_pixels = 20  # Size of the marker image in pixels
-
 # Generate the marker image
 marker_image = cv2.aruco.generateImageMarker(dictionary, marker_id, marker_size_pixels)
 
-# Add white padding for detection (e.g., 100 pixels)
-padded_marker_image = np.pad(marker_image, pad_width=350, constant_values=255)
-img = padded_marker_image
 img = cv2.imread("data/IMG_2722.jpg")
 
 # ArUco detection
@@ -64,10 +60,10 @@ if ids is not None:
     for i in range(4):
         pt1 = tuple(np.int32(form_box_img[i]))
         pt2 = tuple(np.int32(form_box_img[(i + 1) % 4]))
-        cv2.line(img, pt1, pt2, (0, 255, 0), 1)
+        cv2.line(img, pt1, pt2, (0, 255, 0), 5)
 #
 cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
 cv2.resizeWindow("Window", 1200, 800)
-cv2.imshow("Window", crop_img)
+cv2.imshow("Window", img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
