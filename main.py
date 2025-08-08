@@ -3,7 +3,7 @@ from manip import image_manip, get_center
 
 
 def main():
-    img_path = "data/aruco_first.jpg"
+    img_path = "data/IMG_2721.jpg"
 
     img = cv2.imread(img_path)
     morph = image_manip(img_path)
