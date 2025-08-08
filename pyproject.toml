@@ -8,4 +8,4 @@ version = "0.1.0"
 description = "some opencv stuff to make my life better"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["opencv-python", "numpy", "matplotlib"]
+dependencies = ["opencv-python", "numpy", "matplotlib", "scipy"]
