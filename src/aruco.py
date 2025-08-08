@@ -57,9 +57,11 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
         return form_box_img
 
 
-def draw_box(img, form_box_img):
+def draw_poly(img, form_box_img):
     if form_box_img is not None:
         print(np.intp(form_box_img))
+        pts = np.intp(form_box_img).reshape(-1, 1, 2)
+        cv2.fillConvexPoly(img, pts, (0, 255, 0))
         # Draw the bounding box
         # for i in range(4):
         #     pt1 = tuple(np.int32(form_box_img[i]))
@@ -74,19 +76,19 @@ def draw_box(img, form_box_img):
         # mask = np.zeros(img.shape[:2], dtype=np.uint8)
         #
         # # Fill the polygon on the mask with 255 (white)
+        # pts = np.intp(form_box_img).reshape(-1, 1, 2)
+        # mask = np.zeros(img.shape[:2], dtype=np.uint8)
+        # cv2.fillConvexPoly(mask, pts, 255)
+        # extracted = cv2.bitwise_and(img, img, mask=mask)
+        #
+        cv2.imshow("Window", img)
+
+
+def print_snapshot(img, form_box_img):
+    if form_box_img is not None:
+        # Fill the polygon on the mask with 255 (white)
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
-        # cv2.fillConvexPoly(img, pts, (0, 255, 0))
         mask = np.zeros(img.shape[:2], dtype=np.uint8)
         cv2.fillConvexPoly(mask, pts, 255)
         extracted = cv2.bitwise_and(img, img, mask=mask)
-        #
-        # # Apply the mask to extract the region inside the polygon
-        # cropped = cv2.bitwise_and(img, img, mask=mask)
-        #
-        # # Optional: Crop the bounding rectangle around the polygon (to remove black borders)
-        # x, y, w, h = cv2.boundingRect(np.intp(form_box_img).reshape(-1, 1, 2))
-        # cropped = cropped[y : y + h, x : x + w]
-        #
-        # # Show result
-        # cv2.imshow("Window", cropped)
-        cv2.imshow("Window", extracted)
+        cv2.imshow("Snapshot", extracted)

@@ -16,7 +16,6 @@ box_height = 4.1
 box_width = 4.3
 aruco_side = 1
 static = False
-livefeed = True
 snapshot = True
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 parameters = cv2.aruco.DetectorParameters()
@@ -29,46 +28,52 @@ if static:
 
     cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Window", 1200, 800)
-    aruco.draw_box(img, form_box_img)
+    aruco.draw_poly(img, form_box_img)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 else:
-    if livefeed:
-        cap = cv2.VideoCapture(0)  # You may need to change the device index
-        if not snapshot:
-            while True:
-                ret, img = cap.read()
+    cap = cv2.VideoCapture(0)  # You may need to change the device index
+    if not snapshot:
+        while True:
+            ret, img = cap.read()
 
+            form_box_img = aruco.bounding_box(
+                img,
+                box_width,
+                box_height,
+                aruco_side,
+                aruco.detect_aruco(img, detector),
+            )
+
+            aruco.draw_poly(img, form_box_img)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
+
+    else:
+        while True:
+            ret, frame = cap.read()
+            key = cv2.waitKey(1)
+            frame_copy = frame.copy()
+            form_box_img = aruco.bounding_box(
+                frame,
+                box_width,
+                box_height,
+                aruco_side,
+                aruco.detect_aruco(frame, detector),
+            )
+            aruco.draw_poly(frame, form_box_img)
+            if key == ord("s"):
+                snapshot = frame.copy()
                 form_box_img = aruco.bounding_box(
-                    img,
+                    snapshot,
                     box_width,
                     box_height,
                     aruco_side,
-                    aruco.detect_aruco(img, detector),
+                    aruco.detect_aruco(snapshot, detector),
                 )
+                aruco.print_snapshot(frame_copy, form_box_img)
+            if cv2.waitKey(1) & 0xFF == ord("q"):
+                break
 
-                aruco.draw_box(img, form_box_img)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-
-        else:
-            while True:
-                ret, frame = cap.read()
-                cv2.imshow("Live", frame)
-                key = cv2.waitKey(1)
-                if key == ord("s"):
-                    snapshot = frame.copy()
-                    form_box_img = aruco.bounding_box(
-                        snapshot,
-                        box_width,
-                        box_height,
-                        aruco_side,
-                        aruco.detect_aruco(snapshot, detector),
-                    )
-
-                    aruco.draw_box(snapshot, form_box_img)
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
-
-        cap.release()
+    cap.release()
 cv2.destroyAllWindows()
