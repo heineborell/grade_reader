@@ -63,24 +63,10 @@ def draw_poly(img, form_box_img):
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
         cv2.fillConvexPoly(img, pts, (0, 255, 0))
         # Draw the bounding box
-        # for i in range(4):
-        #     pt1 = tuple(np.int32(form_box_img[i]))
-        #     pt2 = tuple(np.int32(form_box_img[(i + 1) % 4]))
-        #     cv2.line(img, pt1, pt2, (0, 0, 255), -1)
-        # crop_img = img[
-        #     np.int32(form_box_img[0][1]) : np.int32(form_box_img[2][1]),
-        #     np.int32(form_box_img[0][0]) : np.int32(form_box_img[1][0]),
-        # ]
-        # img_copy = img.copy()
-        # # Create a mask the same size as the image, filled with 0 (black)
-        # mask = np.zeros(img.shape[:2], dtype=np.uint8)
-        #
-        # # Fill the polygon on the mask with 255 (white)
-        # pts = np.intp(form_box_img).reshape(-1, 1, 2)
-        # mask = np.zeros(img.shape[:2], dtype=np.uint8)
-        # cv2.fillConvexPoly(mask, pts, 255)
-        # extracted = cv2.bitwise_and(img, img, mask=mask)
-        #
+        for i in range(4):
+            pt1 = tuple(np.int32(form_box_img[i]))
+            pt2 = tuple(np.int32(form_box_img[(i + 1) % 4]))
+            cv2.line(img, pt1, pt2, (0, 0, 255), -1)
         cv2.imshow("Window", img)
 
 
