@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from manip import image_manip, get_center
 
 
 def detect_aruco(img, detector):
@@ -36,15 +37,16 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
             M = cv2.getPerspectiveTransform(args[0][0][0], dst_pts)
 
             # Define the bounding box (relative to marker-aligned space)
+            y_shift = 0.7 * pixel_cm_ratio
             form_box = np.array(
                 [
-                    [0, pixel_cm_ratio],
-                    [box_width * pixel_cm_ratio, pixel_cm_ratio],
+                    [0, pixel_cm_ratio + y_shift],
+                    [box_width * pixel_cm_ratio, pixel_cm_ratio + y_shift],
                     [
                         box_width * pixel_cm_ratio,
-                        pixel_cm_ratio + box_height * pixel_cm_ratio,
+                        pixel_cm_ratio + box_height * pixel_cm_ratio + y_shift,
                     ],
-                    [0, pixel_cm_ratio + box_height * pixel_cm_ratio],
+                    [0, pixel_cm_ratio + box_height * pixel_cm_ratio + y_shift],
                 ],
                 dtype=np.float32,
             )
@@ -83,4 +85,21 @@ def print_snapshot(img, form_box_img):
         mask = np.zeros(img.shape[:2], dtype=np.uint8)
         cv2.fillConvexPoly(mask, pts, 255)
         extracted = cv2.bitwise_and(img, img, mask=mask)
-        cv2.imshow("Snapshot", extracted)
+
+        rgba = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
+        rgba[:, :, 3] = mask  # use mask as alpha
+
+        coords = cv2.findNonZero(mask)
+        x, y, w, h = cv2.boundingRect(coords)
+        cropped = rgba[y : y + h, x : x + w]
+
+        cv2.imwrite("snapshot.jpeg", cropped)
+        og_img = cv2.imread("snapshot.jpeg")
+        snap_img = cv2.imread("snapshot.jpeg")
+
+        morph = image_manip(snap_img)
+        result, _ = get_center(og_img, morph)
+        cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
+        cv2.resizeWindow("Snapshot", 1200, 800)
+        cv2.imshow("Snapshot", snap_img)
+        cv2.imshow("Snapshot", result)
