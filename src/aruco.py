@@ -44,9 +44,9 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
                     [box_width * pixel_cm_ratio, pixel_cm_ratio + y_shift],
                     [
                         box_width * pixel_cm_ratio,
-                        pixel_cm_ratio + box_height * pixel_cm_ratio + y_shift,
+                        pixel_cm_ratio + box_height * pixel_cm_ratio,
                     ],
-                    [0, pixel_cm_ratio + box_height * pixel_cm_ratio + y_shift],
+                    [0, pixel_cm_ratio + box_height * pixel_cm_ratio],
                 ],
                 dtype=np.float32,
             )
@@ -61,7 +61,6 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
 
 def draw_poly(img, form_box_img):
     if form_box_img is not None:
-        print(np.intp(form_box_img))
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
         cv2.fillConvexPoly(img, pts, (0, 255, 0))
         cv2.imshow("Window", img)
@@ -93,13 +92,8 @@ def print_snapshot(img, form_box_img):
         x, y, w, h = cv2.boundingRect(coords)
         cropped = rgba[y : y + h, x : x + w]
 
-        cv2.imwrite("snapshot.jpeg", cropped)
-        og_img = cv2.imread("snapshot.jpeg")
-        snap_img = cv2.imread("snapshot.jpeg")
-
-        morph = image_manip(snap_img)
-        result, _ = get_center(og_img, morph)
+        morph = image_manip(cropped)
+        result, _ = get_center(cropped, morph)
         cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Snapshot", 1200, 800)
-        cv2.imshow("Snapshot", snap_img)
         cv2.imshow("Snapshot", result)
