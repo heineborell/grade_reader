@@ -5,10 +5,6 @@ import aruco
 # marker_id = 3
 # marker_size_pixels = 20  # Size of the marker image in pixels
 
-# crop_img = img[
-#     np.int32(form_box_img[0][1]) : np.int32(form_box_img[2][1]),
-#     np.int32(form_box_img[0][0]) : np.int32(form_box_img[1][0]),
-# ]
 
 img = cv2.imread("data/IMG_2757.jpg")
 box_height = 4.1
@@ -52,7 +48,9 @@ else:
         while True:
             ret, frame = cap.read()
             key = cv2.waitKey(1)
+            # get an unprocessed copy
             frame_copy = frame.copy()
+            # find the region using aruco
             form_box_img = aruco.bounding_box(
                 frame,
                 box_width,
@@ -60,9 +58,10 @@ else:
                 aruco_side,
                 aruco.detect_aruco(frame, detector),
             )
+            # draw a green box around the detected region, this is just for shows
             aruco.draw_poly(frame, form_box_img)
             if key == ord("s"):
-                snapshot = frame.copy()
+                snapshot = frame_copy
                 form_box_img = aruco.bounding_box(
                     snapshot,
                     box_width,

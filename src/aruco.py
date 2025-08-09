@@ -62,11 +62,6 @@ def draw_poly(img, form_box_img):
         print(np.intp(form_box_img))
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
         cv2.fillConvexPoly(img, pts, (0, 255, 0))
-        # # Draw the bounding box
-        # for i in range(4):
-        #     pt1 = tuple(np.int32(form_box_img[i]))
-        #     pt2 = tuple(np.int32(form_box_img[(i + 1) % 4]))
-        #     cv2.line(img, pt1, pt2, (0, 0, 255), 4)
         cv2.imshow("Window", img)
 
 
