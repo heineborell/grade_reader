@@ -33,7 +33,18 @@ def get_center(og_img, morphed_img):
         cy = int(M["m01"] / M["m00"])
         centers.append((cx, cy))
         cv2.circle(result, (cx, cy), 20, (136, 231, 136), -1)
-        pt = (cx, cy)
-        print("circle #:", i, "center:", pt)
-
+        # pt = (cx, cy)
+        # print("circle #:", i, "center:", pt, "img size")
     return result, centers
+
+
+def centers_to_numbers(result, centers):
+    print(centers)
+    print(result.shape[:2])
+    W, H = result.shape[:2]
+    cell_width = W / len(centers)
+    cell_height = H / 9
+    # given the paper is located horizontally and side is on the left (0,0) corresponds to the lower left of the box
+    for x, y in centers:
+        print(x, (x / cell_width) + 1)
+    pass

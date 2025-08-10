@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-from manip import image_manip, get_center
+from manip import image_manip, get_center, centers_to_numbers
 
 
 def detect_aruco(img, detector):
@@ -37,7 +37,7 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
             M = cv2.getPerspectiveTransform(args[0][0][0], dst_pts)
 
             # Define the bounding box (relative to marker-aligned space)
-            y_shift = 0.7 * pixel_cm_ratio
+            y_shift = 0.8 * pixel_cm_ratio
             form_box = np.array(
                 [
                     [0, pixel_cm_ratio + y_shift],
@@ -93,7 +93,9 @@ def print_snapshot(img, form_box_img):
         cropped = rgba[y : y + h, x : x + w]
 
         morph = image_manip(cropped)
-        result, _ = get_center(cropped, morph)
+        result, centers = get_center(cropped, morph)
+        centers_to_numbers(result, centers)
+
         cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Snapshot", 1200, 800)
         cv2.imshow("Snapshot", result)
