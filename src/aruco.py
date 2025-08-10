@@ -62,6 +62,28 @@ def draw_box(img, form_box_img):
         cv2.imshow("Window", img)
 
 
+def draw_circles(img):
+    # Assume img is your grayscale or preprocessed binary image
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Optionally apply some blur to reduce noise
+    gray_blurred = cv2.medianBlur(gray, 5)
+
+    # Detect circles using HoughCircles
+    circles = cv2.HoughCircles(
+        gray_blurred,
+        cv2.HOUGH_GRADIENT,
+        dp=1,  # Inverse ratio of resolution
+        minDist=20,  # Minimum distance between circle centers
+        param1=50,  # Upper threshold for Canny edge detector
+        param2=30,  # Threshold for center detection (smaller->more false positives)
+        minRadius=10,  # Minimum circle radius
+        maxRadius=20,  # Maximum circle radius
+    )
+
+    return circles
+
+
 def print_snapshot(img, form_box_img):
     if form_box_img is not None:
         # Convert polygon points to int and reshape for OpenCV
@@ -91,10 +113,22 @@ def print_snapshot(img, form_box_img):
         if cropped is not None:
             cv2.imwrite("cropped.png", cropped)
 
-        morph = image_manip(cropped)
-        result, centers = get_center(cropped, morph)
-        centers_to_numbers(result, centers)
+        # morph = image_manip(cropped)
+        # result, centers = get_center(cropped, morph)
+        # centers_to_numbers(result, centers)
+
+        circles = draw_circles(cropped)
+
+        if circles is not None:
+            circles = np.uint16(np.around(circles))
+            for i in circles[0, :]:
+                center = (i[0], i[1])
+                radius = i[2]
+
+                # Draw circle on output for visualization
+                cv2.circle(cropped, center, radius, (0, 255, 0), 2)
+                cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
 
         cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Snapshot", 1200, 800)
-        cv2.imshow("Snapshot", result)
+        cv2.imshow("Snapshot", cropped)
