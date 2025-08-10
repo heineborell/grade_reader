@@ -8,7 +8,7 @@ def image_manip(image):
     ret, thresh = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
     thresh = 255 - thresh
     # # apply morphology close this is to kill anything other than the answer
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13))
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
     morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
     morph = cv2.morphologyEx(morph, cv2.MORPH_CLOSE, kernel)
@@ -38,13 +38,26 @@ def get_center(og_img, morphed_img):
     return result, centers
 
 
+def get_first_digit(no):
+    first_digit_str = str(abs(no))[
+        0
+    ]  # Get the first character of the string representation
+    first_digit = int(first_digit_str)  # Convert to integer
+    return first_digit
+
+
 def centers_to_numbers(result, centers):
-    print(centers)
+    print(centers, len(centers))
     print(result.shape[:2])
     W, H = result.shape[:2]
     cell_width = W / len(centers)
-    cell_height = H / 9
+    cell_height = H / 10
     # given the paper is located horizontally and side is on the left (0,0) corresponds to the lower left of the box
-    for x, y in centers:
-        print(x, (x / cell_width) + 1)
-    pass
+    no_list = []
+    for x_cen, y_cen in centers:
+        column = x_cen / cell_width
+        row = y_cen / cell_height
+        no_list.append((row, column))
+
+        print(row, column)
+    print(sorted(no_list, key=lambda x: x[1]))

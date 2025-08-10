@@ -7,7 +7,7 @@ import aruco
 
 
 img = cv2.imread("data/IMG_2757.jpg")
-box_height = 4.1
+box_height = 4.9
 box_width = 4.3
 aruco_side = 1
 static = False

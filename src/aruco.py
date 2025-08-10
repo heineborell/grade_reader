@@ -30,8 +30,8 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
 
             form_box_img = np.array(
                 [
-                    [upper_left_x, upper_left_y],
-                    [upper_left_x + box_width * pixel_cm_ratio, upper_left_y],
+                    [upper_left_x, upper_left_y + y_shift],
+                    [upper_left_x + box_width * pixel_cm_ratio, upper_left_y + y_shift],
                     [
                         upper_left_x + box_width * pixel_cm_ratio,
                         upper_left_y + pixel_cm_ratio * box_height,
@@ -40,20 +40,6 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
                 ],
                 dtype=np.float32,
             )
-            print(form_box_img)
-
-            # form_box_img = np.array(
-            #     [
-            #         [upper_left, pixel_cm_ratio + y_shift],
-            #         [box_width * pixel_cm_ratio, pixel_cm_ratio + y_shift],
-            #         [
-            #             box_width * pixel_cm_ratio,
-            #             pixel_cm_ratio + box_height * pixel_cm_ratio,
-            #         ],
-            #         [upper_left, pixel_cm_ratio + box_height * pixel_cm_ratio],
-            #     ],
-            #     dtype=np.float32,
-            # )
 
         return form_box_img
 
@@ -78,18 +64,32 @@ def draw_box(img, form_box_img):
 
 def print_snapshot(img, form_box_img):
     if form_box_img is not None:
-        # Fill the polygon on the mask with 255 (white)
+        # Convert polygon points to int and reshape for OpenCV
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
+
+        # Create empty mask
         mask = np.zeros(img.shape[:2], dtype=np.uint8)
+
+        # Fill polygon in mask
         cv2.fillConvexPoly(mask, pts, 255)
-        extracted = cv2.bitwise_and(img, img, mask=mask)
 
+        # Convert BGR image to BGRA (adds alpha channel)
         rgba = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
-        rgba[:, :, 3] = mask  # use mask as alpha
 
+        # Apply mask to alpha channel
+        rgba[:, :, 3] = mask
+
+        # Get bounding box around the non-zero mask pixels
         coords = cv2.findNonZero(mask)
-        x, y, w, h = cv2.boundingRect(coords)
-        cropped = rgba[y : y + h, x : x + w]
+        if coords is not None:  # safety check
+            x, y, w, h = cv2.boundingRect(coords)
+            cropped = rgba[y : y + h, x : x + w]
+        else:
+            cropped = None  # nothing detected
+
+        # Optionally save
+        if cropped is not None:
+            cv2.imwrite("cropped.png", cropped)
 
         morph = image_manip(cropped)
         result, centers = get_center(cropped, morph)
