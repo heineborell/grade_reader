@@ -14,7 +14,7 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
     corners_int = np.intp(args[0][0])
     ids = args[0][1]
     if ids is not None:
-        cv2.polylines(img, corners_int, True, (136, 231, 136), 1)
+        cv2.polylines(img, corners_int, True, (0, 0, 255), 2)
         if ids is not None:
             # Aruco perimeter which will used to fix the bounding box size
             aruco_perimeter = cv2.arcLength(args[0][0][0], True)
@@ -22,39 +22,38 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
             # Pixel to cm ratio
             pixel_cm_ratio = aruco_perimeter / 4 * aruco_side
 
-            # Destination coordinates in marker-aligned space
-            dst_pts = np.array(
-                [
-                    [0, 0],
-                    [pixel_cm_ratio, 0],
-                    [1 * pixel_cm_ratio, pixel_cm_ratio],
-                    [0, pixel_cm_ratio],
-                ],
-                dtype=np.float32,
-            )
-
-            # Get transformation from marker to ideal square
-            M = cv2.getPerspectiveTransform(args[0][0][0], dst_pts)
-
             # Define the bounding box (relative to marker-aligned space)
             y_shift = 0.8 * pixel_cm_ratio
-            form_box = np.array(
+
+            upper_left_x = corners_int.tolist()[0][0][3][0]  # this is in pixels
+            upper_left_y = corners_int.tolist()[0][0][3][1]  # this is in pixels
+
+            form_box_img = np.array(
                 [
-                    [0, pixel_cm_ratio + y_shift],
-                    [box_width * pixel_cm_ratio, pixel_cm_ratio + y_shift],
+                    [upper_left_x, upper_left_y],
+                    [upper_left_x + box_width * pixel_cm_ratio, upper_left_y],
                     [
-                        box_width * pixel_cm_ratio,
-                        pixel_cm_ratio + box_height * pixel_cm_ratio,
+                        upper_left_x + box_width * pixel_cm_ratio,
+                        upper_left_y + pixel_cm_ratio * box_height,
                     ],
-                    [0, pixel_cm_ratio + box_height * pixel_cm_ratio],
+                    [upper_left_x, upper_left_y + pixel_cm_ratio * box_height],
                 ],
                 dtype=np.float32,
             )
+            print(form_box_img)
 
-            # Transform back to image space
-            form_box_img = cv2.perspectiveTransform(
-                form_box[None, :, :], np.linalg.inv(M)
-            )[0]
+            # form_box_img = np.array(
+            #     [
+            #         [upper_left, pixel_cm_ratio + y_shift],
+            #         [box_width * pixel_cm_ratio, pixel_cm_ratio + y_shift],
+            #         [
+            #             box_width * pixel_cm_ratio,
+            #             pixel_cm_ratio + box_height * pixel_cm_ratio,
+            #         ],
+            #         [upper_left, pixel_cm_ratio + box_height * pixel_cm_ratio],
+            #     ],
+            #     dtype=np.float32,
+            # )
 
         return form_box_img
 
