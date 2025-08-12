@@ -62,7 +62,8 @@ def draw_box(img, form_box_img):
         cv2.imshow("Window", img)
 
 
-def draw_circles(img):
+def get_circles(img_path):
+    img = cv2.imread(img_path)
     # Assume img is your grayscale or preprocessed binary image
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -84,7 +85,7 @@ def draw_circles(img):
     return circles
 
 
-def print_snapshot(img, form_box_img):
+def crop_snapshot(img, form_box_img):
     if form_box_img is not None:
         # Convert polygon points to int and reshape for OpenCV
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
@@ -117,18 +118,24 @@ def print_snapshot(img, form_box_img):
         # result, centers = get_center(cropped, morph)
         # centers_to_numbers(result, centers)
 
-        circles = draw_circles(cropped)
 
-        if circles is not None:
-            circles = np.uint16(np.around(circles))
-            for i in circles[0, :]:
-                center = (i[0], i[1])
-                radius = i[2]
+def show_image(img_path):
+    circles = get_circles(img_path)
+    cropped = cv2.imread(img_path)
 
-                # Draw circle on output for visualization
-                cv2.circle(cropped, center, radius, (0, 255, 0), 2)
-                cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
+    if circles is not None:
+        circles = np.uint16(np.around(circles))
+        for i in circles[0, :]:
+            center = (i[0], i[1])
+            radius = i[2]
 
-        cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
-        cv2.resizeWindow("Snapshot", 1200, 800)
-        cv2.imshow("Snapshot", cropped)
+            # Draw circle on output for visualization
+            cv2.circle(cropped, center, radius, (0, 255, 0), 2)
+            cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
+
+    morph = image_manip(cropped)
+    result, centers = get_center(cropped, morph)
+
+    cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Snapshot", 1200, 800)
+    cv2.imshow("Snapshot", result)

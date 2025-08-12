@@ -69,7 +69,8 @@ else:
                     aruco_side,
                     aruco.detect_aruco(snapshot, detector),
                 )
-                aruco.print_snapshot(frame_copy, form_box_img)
+                aruco.crop_snapshot(frame_copy, form_box_img)
+                aruco.show_image("cropped.png")
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
