@@ -114,10 +114,6 @@ def crop_snapshot(img, form_box_img):
         if cropped is not None:
             cv2.imwrite("cropped.png", cropped)
 
-        # morph = image_manip(cropped)
-        # result, centers = get_center(cropped, morph)
-        # centers_to_numbers(result, centers)
-
 
 def show_image(img_path):
     circles = get_circles(img_path)
@@ -131,7 +127,7 @@ def show_image(img_path):
 
             # Draw circle on output for visualization
             cv2.circle(cropped, center, radius, (0, 255, 0), 2)
-            cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
+            # cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
 
     morph = image_manip(cropped)
     result, centers = get_center(cropped, morph)
@@ -139,3 +135,4 @@ def show_image(img_path):
     cv2.namedWindow("Snapshot", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Snapshot", 1200, 800)
     cv2.imshow("Snapshot", result)
+    return centers, circles

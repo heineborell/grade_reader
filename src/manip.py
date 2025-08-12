@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 def image_manip(image):
@@ -32,7 +33,7 @@ def get_center(og_img, morphed_img):
         cx = int(M["m10"] / M["m00"])
         cy = int(M["m01"] / M["m00"])
         centers.append((cx, cy))
-        cv2.circle(result, (cx, cy), 20, (136, 231, 136), -1)
+        cv2.circle(result, (cx, cy), 2, (0, 0, 255), 3)
         # pt = (cx, cy)
         # print("circle #:", i, "center:", pt, "img size")
     return result, centers
@@ -46,18 +47,10 @@ def get_first_digit(no):
     return first_digit
 
 
-def centers_to_numbers(result, centers):
-    print(centers, len(centers))
-    print(result.shape[:2])
-    W, H = result.shape[:2]
-    cell_width = W / len(centers)
-    cell_height = H / 10
-    # given the paper is located horizontally and side is on the left (0,0) corresponds to the lower left of the box
-    no_list = []
-    for x_cen, y_cen in centers:
-        column = x_cen / cell_width
-        row = y_cen / cell_height
-        no_list.append((row, column))
-
-        print(row, column)
-    print(sorted(no_list, key=lambda x: x[1]))
+def centers_to_numbers(centers, circles, size):
+    circle_list = [tuple(i[:2].tolist()) for i in circles[0, :]]
+    circle_list = sorted(circle_list, key=lambda x: x[0])
+    if len(circle_list) == size:
+        circle_list = np.array(circle_list).reshape(9, 10, 2)
+        print("The circle matrix")
+        print(circle_list)

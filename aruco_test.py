@@ -7,7 +7,7 @@ import aruco
 
 
 img = cv2.imread("data/IMG_2757.jpg")
-box_height = 4.9
+box_height = 4
 box_width = 4.3
 aruco_side = 1
 static = False
@@ -70,7 +70,8 @@ else:
                     aruco.detect_aruco(snapshot, detector),
                 )
                 aruco.crop_snapshot(frame_copy, form_box_img)
-                aruco.show_image("cropped.png")
+                centers, circles = aruco.show_image("cropped.png")
+                aruco.centers_to_numbers(centers, circles, 90)
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
 
