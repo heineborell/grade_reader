@@ -47,10 +47,32 @@ def get_first_digit(no):
     return first_digit
 
 
+def distance(ordered_list, centers):
+    if centers is not None:
+        centers = np.array(centers).reshape(-1, 2)
+
+        distance_mat = []
+        for i, center in enumerate(centers):
+            distance_list = []
+            print(f"center {i}", center)
+            for circle in ordered_list[0]:
+                distance_list.append(
+                    (circle[0] - center[0]) ** 2 + (circle[1] - center[1]) ** 2
+                )
+                distance_list = [int(x) for x in distance_list]
+            distance_mat.append(distance_list)
+
+        print(distance_mat)
+
+
 def centers_to_numbers(centers, circles, size):
     circle_list = [tuple(i[:2].tolist()) for i in circles[0, :]]
-    circle_list = sorted(circle_list, key=lambda x: x[0])
+    circle_list = sorted(circle_list, key=lambda x: x[1])
     if len(circle_list) == size:
-        circle_list = np.array(circle_list).reshape(9, 10, 2)
-        print("The circle matrix")
-        print(circle_list)
+        circle_list = np.array(circle_list).reshape(10, 9, 2)
+        ordered_list = []
+        for j in circle_list:
+            ordered_list.append(sorted(j.tolist(), key=lambda x: x[0]))
+
+        (np.array(ordered_list))
+        distance(ordered_list, centers)
