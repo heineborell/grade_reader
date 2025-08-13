@@ -51,18 +51,23 @@ def distance(ordered_list, centers):
     if centers is not None:
         centers = np.array(centers).reshape(-1, 2)
 
-        distance_mat = []
+        fin_mat = np.zeros((10, 9))
         for i, center in enumerate(centers):
-            distance_list = []
+            distance_mat = []
             print(f"center {i}", center)
-            for circle in ordered_list[0]:
-                distance_list.append(
-                    (circle[0] - center[0]) ** 2 + (circle[1] - center[1]) ** 2
-                )
-                distance_list = [int(x) for x in distance_list]
-            distance_mat.append(distance_list)
+            for row in ordered_list:
+                distance_row = []
+                for circle in row:
+                    distance_row.append(
+                        (circle[0] - center[0]) ** 2 + (circle[1] - center[1]) ** 2
+                    )
+                    distance_row = [int(x) for x in distance_row]
+                distance_mat.append(distance_row)
+            # distance_mat.append(distance_list)
+            distance_mat = (distance_mat == np.array(distance_mat).min()) * 1
+            fin_mat = fin_mat + distance_mat
 
-        print(distance_mat)
+        print(fin_mat)
 
 
 def centers_to_numbers(centers, circles, size):
