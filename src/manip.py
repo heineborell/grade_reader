@@ -28,14 +28,12 @@ def get_center(og_img, morphed_img):
     contours = contour_results[-2]
 
     # here using first and zeroth moments we find the center for each contour, then draw a circle at each point
-    for i, cntr in enumerate(contours):
+    for cntr in contours:
         M = cv2.moments(cntr)
         cx = int(M["m10"] / M["m00"])
         cy = int(M["m01"] / M["m00"])
         centers.append((cx, cy))
         cv2.circle(result, (cx, cy), 2, (0, 0, 255), 3)
-        # pt = (cx, cy)
-        # print("circle #:", i, "center:", pt, "img size")
     return result, centers
 
 
@@ -63,7 +61,6 @@ def distance(ordered_list, centers):
                     )
                     distance_row = [int(x) for x in distance_row]
                 distance_mat.append(distance_row)
-            # distance_mat.append(distance_list)
             distance_mat = (distance_mat == np.array(distance_mat).min()) * 1
             fin_mat = fin_mat + distance_mat
 
