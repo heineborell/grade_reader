@@ -50,9 +50,8 @@ def distance(ordered_list, centers):
         centers = np.array(centers).reshape(-1, 2)
 
         fin_mat = np.zeros((10, 9))
-        for i, center in enumerate(centers):
+        for center in centers:
             distance_mat = []
-            print(f"center {i}", center)
             for row in ordered_list:
                 distance_row = []
                 for circle in row:
@@ -64,7 +63,21 @@ def distance(ordered_list, centers):
             distance_mat = (distance_mat == np.array(distance_mat).min()) * 1
             fin_mat = fin_mat + distance_mat
 
-        print(fin_mat)
+        fin_mat = fin_mat.astype(int)
+        if (np.sum(fin_mat, 0).sum()) == 9:
+            return fin_mat
+        else:
+            print("The number placement of dots not correct!")
+
+
+def get_digits(fin_mat):
+    if fin_mat is not None:
+        student_no = ""
+        for j in range(0, 9):
+            for i, number in enumerate(fin_mat):
+                if number[j] == 1:
+                    student_no = student_no + str(i)
+        print(student_no)
 
 
 def centers_to_numbers(centers, circles, size):
@@ -77,4 +90,7 @@ def centers_to_numbers(centers, circles, size):
             ordered_list.append(sorted(j.tolist(), key=lambda x: x[0]))
 
         (np.array(ordered_list))
-        distance(ordered_list, centers)
+        omr_mat = distance(ordered_list, centers)
+        get_digits(omr_mat)
+    else:
+        print("Number of dots is not correct!")

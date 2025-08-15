@@ -1,5 +1,6 @@
 import cv2
 import aruco
+from manip import get_digits
 
 
 # marker_id = 3
@@ -15,14 +16,6 @@ parameters = cv2.aruco.DetectorParameters()
 detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
 if static:
-    # form_box_img = aruco.bounding_box(
-    #     img, box_width, box_height, aruco_side, aruco.detect_aruco(img, detector)
-    # )
-    #
-    # cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
-    # cv2.resizeWindow("Window", 1200, 800)
-    # aruco.draw_poly(img, form_box_img)
-    # get an unprocessed copy
     centers, circles = aruco.show_image("cropped.png")
     aruco.centers_to_numbers(centers, circles, 90)
     cv2.waitKey(0)
