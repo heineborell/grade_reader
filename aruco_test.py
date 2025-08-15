@@ -5,25 +5,26 @@ import aruco
 # marker_id = 3
 # marker_size_pixels = 20  # Size of the marker image in pixels
 
-
-img = cv2.imread("data/IMG_2757.jpg")
 box_height = 4.7
 box_width = 4.3
 aruco_side = 1
-static = False
+static = True
 snapshot = True
 dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
 parameters = cv2.aruco.DetectorParameters()
 detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
 if static:
-    form_box_img = aruco.bounding_box(
-        img, box_width, box_height, aruco_side, aruco.detect_aruco(img, detector)
-    )
-
-    cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Window", 1200, 800)
-    aruco.draw_poly(img, form_box_img)
+    # form_box_img = aruco.bounding_box(
+    #     img, box_width, box_height, aruco_side, aruco.detect_aruco(img, detector)
+    # )
+    #
+    # cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
+    # cv2.resizeWindow("Window", 1200, 800)
+    # aruco.draw_poly(img, form_box_img)
+    # get an unprocessed copy
+    centers, circles = aruco.show_image("cropped.png")
+    aruco.centers_to_numbers(centers, circles, 90)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 else:
