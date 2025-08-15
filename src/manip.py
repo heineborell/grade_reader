@@ -37,14 +37,6 @@ def get_center(og_img, morphed_img):
     return result, centers
 
 
-def get_first_digit(no):
-    first_digit_str = str(abs(no))[
-        0
-    ]  # Get the first character of the string representation
-    first_digit = int(first_digit_str)  # Convert to integer
-    return first_digit
-
-
 def distance(ordered_list, centers):
     if centers is not None:
         centers = np.array(centers).reshape(-1, 2)

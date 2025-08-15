@@ -1,19 +1,75 @@
 import cv2
-from manip import image_manip, get_center
+import aruco
 
 
 def main():
-    img_path = "snapshot.jpeg"
+    # marker_id = 3
+    # marker_size_pixels = 20  # Size of the marker image in pixels
 
-    img = cv2.imread(img_path)
-    morph = image_manip(img)
-    result, _ = get_center(img, morph)
+    box_height = 4.7
+    box_width = 4.3
+    aruco_side = 1
+    static = True
+    snapshot = True
+    dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+    parameters = cv2.aruco.DetectorParameters()
+    detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-    cv2.namedWindow("Window", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Window", 1200, 800)
-    cv2.imshow("Window", result)
+    if static:
+        centers, circles = aruco.show_image("cropped.png")
+        aruco.centers_to_numbers(centers, circles, 90)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+    else:
+        cap = cv2.VideoCapture(0)  # You may need to change the device index
+        if not snapshot:
+            while True:
+                _, img = cap.read()
 
-    cv2.waitKey(0)
+                form_box_img = aruco.bounding_box(
+                    img,
+                    box_width,
+                    box_height,
+                    aruco_side,
+                    aruco.detect_aruco(img, detector),
+                )
+
+                aruco.draw_poly(img, form_box_img)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+
+        else:
+            while True:
+                _, frame = cap.read()
+                key = cv2.waitKey(1)
+                # get an unprocessed copy
+                frame_copy = frame.copy()
+                # find the region using aruco
+                form_box_img = aruco.bounding_box(
+                    frame,
+                    box_width,
+                    box_height,
+                    aruco_side,
+                    aruco.detect_aruco(frame, detector),
+                )
+                # draw a green box around the detected region, this is just for shows
+                aruco.draw_poly(frame, form_box_img)
+                if key == ord("s"):
+                    snapshot = frame_copy
+                    form_box_img = aruco.bounding_box(
+                        snapshot,
+                        box_width,
+                        box_height,
+                        aruco_side,
+                        aruco.detect_aruco(snapshot, detector),
+                    )
+                    aruco.crop_snapshot(frame_copy, form_box_img)
+                    centers, circles = aruco.show_image("cropped.png")
+                    aruco.centers_to_numbers(centers, circles, 90)
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
+
+        cap.release()
     cv2.destroyAllWindows()
 
 
