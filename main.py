@@ -2,6 +2,7 @@ import cv2
 import aruco
 import manip
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -21,11 +22,15 @@ def main():
     snapshot = True
 
     if static:
-        manip.get_grade("cropped_grade.png", display=True)
+        # get characters of grades and preprocess them for the model
+        characters = manip.get_grade("cropped_grade.png")
+        # manip.show_processed(characters)
+
+        # get the centers circles for student numbers
         # centers, circles = aruco.show_image("cropped.png")
         # aruco.centers_to_numbers(centers, circles, 90)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        # cv2.waitKey(0)
+        # cv2.destroyAllWindows()
     else:
         cap = cv2.VideoCapture(0)  # You may need to change the device index
         if not snapshot:

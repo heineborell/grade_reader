@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import manip
 
 
 def image_manip(image):
@@ -124,3 +126,41 @@ def get_grade(img_path, display=False):
             cv2.imshow(f"Digit {i}", digit)
             cv2.waitKey(0)
             cv2.destroyWindow(f"Digit {i}")
+
+    cv2.destroyAllWindows()
+    return digits
+
+
+def preprocess_char(roi, size=28):
+    roi = cv2.bitwise_not(roi)  # white background, black text
+    h, w = roi.shape
+    scale = size / max(h, w)
+    new_w, new_h = int(w * scale), int(h * scale)
+    resized = cv2.resize(roi, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
+    delta_w = size - new_w
+    delta_h = size - new_h
+    top, bottom = delta_h // 2, delta_h - delta_h // 2
+    left, right = delta_w // 2, delta_w - delta_w // 2
+    padded = cv2.copyMakeBorder(
+        resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=255
+    )
+
+    normalized = padded.astype("float32") / 255.0
+    return normalized.reshape(1, size, size, 1)
+
+
+def show_processed(roi_digits):
+    for i, roi in enumerate(roi_digits):
+        preprocessed = manip.preprocess_char(roi)  # resize, pad, normalize
+        plt.subplot(2, len(roi_digits), i + 1)
+        plt.imshow(roi, cmap="gray")
+        plt.title(f"Raw {i}")
+        plt.axis("off")
+
+        plt.subplot(2, len(roi_digits), i + 1 + len(roi_digits))
+        plt.imshow(preprocessed[0, :, :, 0], cmap="gray")  # remove batch & channel dims
+        plt.title(f"Processed {i}")
+        plt.axis("off")
+
+    plt.show()
