@@ -6,10 +6,10 @@ def main():
     # marker_id = 3
     # marker_size_pixels = 20  # Size of the marker image in pixels
 
-    box_height = 4.7
+    box_height = 6.4
     box_width = 4.3
     aruco_side = 1
-    static = True
+    static = False
     snapshot = True
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
     parameters = cv2.aruco.DetectorParameters()

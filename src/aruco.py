@@ -64,13 +64,13 @@ def draw_box(img, form_box_img):
 
 def get_circles(img_path):
     img = cv2.imread(img_path)
-    # Assume img is your grayscale or preprocessed binary image
+    # Assume image is your grayscale or preprocessed binary image
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     # Optionally apply some blur to reduce noise
     gray_blurred = cv2.medianBlur(gray, 5)
 
-    # Detect circles using HoughCircles
+    # Detect circles using `HoughCircles`
     circles = cv2.HoughCircles(
         gray_blurred,
         cv2.HOUGH_GRADIENT,
@@ -96,7 +96,7 @@ def crop_snapshot(img, form_box_img):
         # Fill polygon in mask
         cv2.fillConvexPoly(mask, pts, 255)
 
-        # Convert BGR image to BGRA (adds alpha channel)
+        # Convert `BGR` image to `BGRA` (adds alpha channel)
         rgba = cv2.cvtColor(img, cv2.COLOR_BGR2BGRA)
 
         # Apply mask to alpha channel
@@ -127,7 +127,7 @@ def show_image(img_path):
 
             # Draw circle on output for visualization
             cv2.circle(cropped, center, radius, (0, 255, 0), 2)
-            # cv2.circle(cropped, center, 2, (0, 0, 255), 3)  # center point
+            # cv2.circle(cropped, center, 2, (0, 0, 255), 3) # center point
 
     morph = image_manip(cropped)
     result, centers = get_center(cropped, morph)
