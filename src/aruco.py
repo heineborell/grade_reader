@@ -53,8 +53,8 @@ def bounding_box_grade(img, box_width, box_height, aruco_side, corners, ids):
             pixel_cm_ratio = aruco_perimeter / (4 * aruco_side)
 
             y_shift = 0.8 * pixel_cm_ratio
-            upper_left_x = corners_int[0][3][0]
-            upper_left_y = corners_int[0][3][1]
+            upper_left_x = corners_int[0][3][0] + 110
+            upper_left_y = corners_int[0][3][1] - 155
 
             form_box_img_grade = np.array(
                 [

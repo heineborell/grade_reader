@@ -8,7 +8,7 @@ def main():
 
     number_box_height = 6.4
     number_box_width = 4.3
-    grade_box_height = 3
+    grade_box_height = 2
     grade_box_width = 2
     aruco_side = 1
     static = False
@@ -27,15 +27,10 @@ def main():
         if not snapshot:
             while True:
                 _, img = cap.read()
-
+                corners, ids, _ = detector.detectMarkers(img)
                 form_box_img = aruco.bounding_box_number(
-                    img,
-                    number_box_width,
-                    number_box_height,
-                    aruco_side,
-                    aruco.detect_aruco(img, detector),
+                    img, number_box_width, number_box_height, aruco_side, corners, ids
                 )
-
                 aruco.draw_poly(img, form_box_img)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
