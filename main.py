@@ -3,11 +3,13 @@ import aruco
 
 
 def main():
-    # marker_id = 3
-    # marker_size_pixels = 20  # Size of the marker image in pixels
+    # this is the marker for the student id; marker_id = 3; marker_size_pixels = 20  # Size of the marker image in pixels
+    # marker for grade marker_id= 4; marker_size_pixels= 20
 
-    box_height = 6.4
-    box_width = 4.3
+    number_box_height = 6.4
+    number_box_width = 4.3
+    grade_box_height = 3
+    grade_box_width = 2
     aruco_side = 1
     static = False
     snapshot = True
@@ -26,10 +28,10 @@ def main():
             while True:
                 _, img = cap.read()
 
-                form_box_img = aruco.bounding_box(
+                form_box_img = aruco.bounding_box_number(
                     img,
-                    box_width,
-                    box_height,
+                    number_box_width,
+                    number_box_height,
                     aruco_side,
                     aruco.detect_aruco(img, detector),
                 )
@@ -44,24 +46,31 @@ def main():
                 key = cv2.waitKey(1)
                 # get an unprocessed copy
                 frame_copy = frame.copy()
-                # find the region using aruco
-                form_box_img = aruco.bounding_box(
-                    frame,
-                    box_width,
-                    box_height,
-                    aruco_side,
-                    aruco.detect_aruco(frame, detector),
+
+                # detect one time not several
+                corners, ids, _ = detector.detectMarkers(frame)
+                box_num = aruco.bounding_box_number(
+                    frame, number_box_width, number_box_height, aruco_side, corners, ids
                 )
-                # draw a green box around the detected region, this is just for shows
-                aruco.draw_poly(frame, form_box_img)
+                box_grade = aruco.bounding_box_grade(
+                    frame, grade_box_width, grade_box_height, aruco_side, corners, ids
+                )
+
+                # draw both of the polygons
+                aruco.draw_poly(frame, box_num)
+                aruco.draw_poly(frame, box_grade)
+                cv2.imshow("Window", frame)
+
                 if key == ord("s"):
                     snapshot = frame_copy
-                    form_box_img = aruco.bounding_box(
+                    corners, ids, _ = detector.detectMarkers(snapshot)
+                    form_box_img = aruco.bounding_box_number(
                         snapshot,
-                        box_width,
-                        box_height,
+                        number_box_width,
+                        number_box_height,
                         aruco_side,
-                        aruco.detect_aruco(snapshot, detector),
+                        corners,
+                        ids,
                     )
                     aruco.crop_snapshot(frame_copy, form_box_img)
                     centers, circles = aruco.show_image("cropped.png")

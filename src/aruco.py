@@ -9,26 +9,23 @@ def detect_aruco(img, detector):
     return corners, ids
 
 
-def bounding_box(img, box_width, box_height, aruco_side, *args):
-    # need integer corners for opencv polylines
-    corners_int = np.intp(args[0][0])
-    ids = args[0][1]
-    if ids is not None:
-        cv2.polylines(img, corners_int, True, (0, 0, 255), 2)
-        if ids is not None:
-            # Aruco perimeter which will used to fix the bounding box size
-            aruco_perimeter = cv2.arcLength(args[0][0][0], True)
+def bounding_box_number(img, box_width, box_height, aruco_side, corners, ids):
+    if ids is None:
+        return None
 
-            # Pixel to cm ratio
-            pixel_cm_ratio = aruco_perimeter / 4 * aruco_side
+    for i, id_ in enumerate(ids.flatten()):
+        if id_ == 3:  # marker ID for number box
+            corners_int = np.intp(corners[i])
+            cv2.polylines(img, corners_int, True, (0, 0, 255), 2)
 
-            # Define the bounding box (relative to marker-aligned space)
+            aruco_perimeter = cv2.arcLength(corners[i], True)
+            pixel_cm_ratio = aruco_perimeter / (4 * aruco_side)
+
             y_shift = 0.8 * pixel_cm_ratio
+            upper_left_x = corners_int[0][3][0]
+            upper_left_y = corners_int[0][3][1]
 
-            upper_left_x = corners_int.tolist()[0][0][3][0]  # this is in pixels
-            upper_left_y = corners_int.tolist()[0][0][3][1]  # this is in pixels
-
-            form_box_img = np.array(
+            form_box_img_num = np.array(
                 [
                     [upper_left_x, upper_left_y + y_shift],
                     [upper_left_x + box_width * pixel_cm_ratio, upper_left_y + y_shift],
@@ -40,15 +37,44 @@ def bounding_box(img, box_width, box_height, aruco_side, *args):
                 ],
                 dtype=np.float32,
             )
+            return form_box_img_num
 
-        return form_box_img
+
+def bounding_box_grade(img, box_width, box_height, aruco_side, corners, ids):
+    if ids is None:
+        return None
+
+    for i, id_ in enumerate(ids.flatten()):
+        if id_ == 4:  # marker ID for grade box
+            corners_int = np.intp(corners[i])
+            cv2.polylines(img, corners_int, True, (0, 0, 255), 2)
+
+            aruco_perimeter = cv2.arcLength(corners[i], True)
+            pixel_cm_ratio = aruco_perimeter / (4 * aruco_side)
+
+            y_shift = 0.8 * pixel_cm_ratio
+            upper_left_x = corners_int[0][3][0]
+            upper_left_y = corners_int[0][3][1]
+
+            form_box_img_grade = np.array(
+                [
+                    [upper_left_x, upper_left_y + y_shift],
+                    [upper_left_x + box_width * pixel_cm_ratio, upper_left_y + y_shift],
+                    [
+                        upper_left_x + box_width * pixel_cm_ratio,
+                        upper_left_y + pixel_cm_ratio * box_height,
+                    ],
+                    [upper_left_x, upper_left_y + pixel_cm_ratio * box_height],
+                ],
+                dtype=np.float32,
+            )
+            return form_box_img_grade
 
 
 def draw_poly(img, form_box_img):
     if form_box_img is not None:
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
         cv2.fillConvexPoly(img, pts, (0, 255, 0))
-        cv2.imshow("Window", img)
 
 
 def draw_box(img, form_box_img):
