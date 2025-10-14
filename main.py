@@ -59,7 +59,7 @@ def main():
                 if key == ord("s"):
                     snapshot = frame_copy
                     corners, ids, _ = detector.detectMarkers(snapshot)
-                    form_box_img = aruco.bounding_box_number(
+                    form_box_img_number = aruco.bounding_box_number(
                         snapshot,
                         number_box_width,
                         number_box_height,
@@ -67,8 +67,17 @@ def main():
                         corners,
                         ids,
                     )
-                    aruco.crop_snapshot(frame_copy, form_box_img)
-                    centers, circles = aruco.show_image("cropped.png")
+                    form_box_img_grade = aruco.bounding_box_grade(
+                        snapshot,
+                        grade_box_width,
+                        grade_box_height,
+                        aruco_side,
+                        corners,
+                        ids,
+                    )
+                    aruco.crop_snapshot(frame_copy, form_box_img_number)
+                    aruco.crop_snapshot(frame_copy, form_box_img_grade, number=False)
+                    centers, circles = aruco.show_image("cropped_number.png")
                     aruco.centers_to_numbers(centers, circles, 90)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break

@@ -111,7 +111,7 @@ def get_circles(img_path):
     return circles
 
 
-def crop_snapshot(img, form_box_img):
+def crop_snapshot(img, form_box_img, number=True):
     if form_box_img is not None:
         # Convert polygon points to int and reshape for OpenCV
         pts = np.intp(form_box_img).reshape(-1, 1, 2)
@@ -137,8 +137,10 @@ def crop_snapshot(img, form_box_img):
             cropped = None  # nothing detected
 
         # Optionally save
-        if cropped is not None:
-            cv2.imwrite("cropped.png", cropped)
+        if cropped is not None and number:
+            cv2.imwrite("cropped_number.png", cropped)
+        if cropped is not None and not number:
+            cv2.imwrite("cropped_grade.png", cropped)
 
 
 def show_image(img_path):
