@@ -1,5 +1,7 @@
 import cv2
 import aruco
+import manip
+import numpy as np
 
 
 def main():
@@ -11,15 +13,17 @@ def main():
     grade_box_height = 2
     grade_box_width = 2
     aruco_side = 1
-    static = False
-    snapshot = True
     dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
     parameters = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
+    static = True
+    snapshot = True
+
     if static:
-        centers, circles = aruco.show_image("cropped.png")
-        aruco.centers_to_numbers(centers, circles, 90)
+        manip.get_grade("cropped_grade.png", display=True)
+        # centers, circles = aruco.show_image("cropped.png")
+        # aruco.centers_to_numbers(centers, circles, 90)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     else:

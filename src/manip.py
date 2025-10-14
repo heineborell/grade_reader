@@ -86,3 +86,41 @@ def centers_to_numbers(centers, circles, size):
         get_digits(omr_mat)
     else:
         print("Number of dots is not correct!")
+
+
+def get_grade(img_path, display=False):
+    img = cv2.imread(img_path)
+    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+
+    # Red hue range #1 (0-10)
+    lower_red1 = np.array([0, 70, 50])
+    upper_red1 = np.array([10, 255, 255])
+
+    # Red hue range #2 (170-180)
+    lower_red2 = np.array([170, 70, 50])
+    upper_red2 = np.array([180, 255, 255])
+
+    # Combine both masks
+    mask1 = cv2.inRange(hsv, lower_red1, upper_red1)
+    mask2 = cv2.inRange(hsv, lower_red2, upper_red2)
+    red_mask = cv2.bitwise_or(mask1, mask2)
+
+    contours, _ = cv2.findContours(red_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Assume `contours` contains all detected digit contours
+    bounding_boxes = [cv2.boundingRect(c) for c in contours]
+
+    # Sort bounding boxes by x (left to right)
+    bounding_boxes_sorted = sorted(bounding_boxes, key=lambda b: b[0])  # b[0] is x
+
+    # Extract digit images in left-to-right order
+    digits = []
+    for x, y, w, h in bounding_boxes_sorted:
+        digit_img = red_mask[y : y + h, x : x + w]
+        digits.append(digit_img)
+
+    if display:
+        for i, digit in enumerate(digits):
+            cv2.imshow(f"Digit {i}", digit)
+            cv2.waitKey(0)
+            cv2.destroyWindow(f"Digit {i}")
