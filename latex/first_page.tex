@@ -80,7 +80,7 @@
 
 \vspace{.5cm}
 \vspace{.2cm}
-\hspace*{6.5cm}
+\hspace*{6.54cm}
 \raisebox{-0.8cm}{\includegraphics[width=1cm,height=1cm]{aruco.pdf}}%
 \hspace{0.2cm}%
 \parbox[t]{3cm}{\scriptsize Use black or blue ball point pens to fill in
@@ -120,23 +120,25 @@ the circles.}
 
       % Create rows for digits 0-9
       \foreach \number in {0,1,2,3,4,5,6,7,8,9} {
-        \begin{scope}[yshift={-\number * 0.3 cm - 0.4 cm}]
+        \begin{scope}[yshift={-\number * 0.55 cm - 0.4 cm}]
           % Bubble for each digit position with number inside (tighter spacing)
-          \node[draw, circle, inner sep=0.5pt, minimum size=6pt] at
+          \node[draw, circle, inner sep=1pt, minimum size=10pt] at
           ({\digit * 0.45}, 0) {\tiny\number};
         \end{scope}
       }
     }
 
     % Draw border box around the entire OMR sheet (much tighter)
-    \draw[thick] (0.05, 0.6) rectangle (4.3, -3.3);
+    \draw[thick] (0.1, 0.6) rectangle (4.4, -5.75);
   \end{tikzpicture}
 \end{center}
 
-\begin{center}
-  \bf Closed notes, closed books. Attack all problems!
-\end{center}
-\vspace{.2cm}
+\vspace{0.13cm}
+% \hspace*{9.81cm}\includegraphics[width=1cm,height=1cm]{aruco.pdf}
+% \begin{center}
+%   \bf Closed notes, closed books. Attack all problems!
+% \end{center}
+\vspace{2cm}
 \begin{center}
   \fbox{\fbox{\parbox{5.5in}{\centering
         \textbf{Please read the following instructions carefully.}
