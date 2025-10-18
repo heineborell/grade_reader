@@ -35,10 +35,10 @@ def main():
     else:
         cap = cv2.VideoCapture(0)  # You may need to change the device index
         # Set fixed width and height
-        # fixed_width = 1280
-        # fixed_height = 720
-        # cap.set(cv2.CAP_PROP_FRAME_WIDTH, fixed_width)
-        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, fixed_height)
+        fixed_width = 800
+        fixed_height = 720
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, fixed_width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, fixed_height)
         if not snapshot:
             while True:
                 _, img = cap.read()
