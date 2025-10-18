@@ -1,150 +1,94 @@
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
-from torchvision import datasets, transforms
 import cv2
+import numpy as np
 import matplotlib.pyplot as plt
-
-# Set device (prioritize Mac GPU, then CUDA, then CPU)
-if torch.backends.mps.is_available():
-    device = torch.device("mps")
-    print(f"Using device: {device} (Mac GPU)")
-elif torch.cuda.is_available():
-    device = torch.device("cuda")
-    print(f"Using device: {device} (NVIDIA GPU)")
-else:
-    device = torch.device("cpu")
-    print(f"Using device: {device} (CPU)")
-
-print(f"PyTorch version: {torch.__version__}")
+import manip
+import torch
 
 
-# 1. Define the CNN Model
-class MNISTNet(nn.Module):
-    def __init__(self):
-        super(MNISTNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, padding=1)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.dropout1 = nn.Dropout(0.25)
-        self.dropout2 = nn.Dropout(0.5)
-        self.fc1 = nn.Linear(64 * 7 * 7, 128)
-        self.fc2 = nn.Linear(128, 10)
-        self.relu = nn.ReLU()
+def image_manip(image):
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.pool(x)
-        x = self.dropout1(x)
-        x = self.relu(self.conv2(x))
-        x = self.pool(x)
-        x = self.dropout1(x)
-        x = x.view(-1, 64 * 7 * 7)
-        x = self.relu(self.fc1(x))
-        x = self.dropout2(x)
-        x = self.fc2(x)
-        return x
+    # threshold on white color (preparing the img for morphology)
+    ret, thresh = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+    thresh = 255 - thresh
+    # # apply morphology close this is to kill anything other than the answer
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
+    morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (7, 7))
+    morph = cv2.morphologyEx(morph, cv2.MORPH_CLOSE, kernel)
+    return morph
 
 
-# 2. Load and preprocess MNIST data
-print("\nLoading MNIST dataset...")
-transform = transforms.Compose(
-    [transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))]
-)
+def get_center(og_img, morphed_img):
+    # # get contours
+    result = og_img.copy()
+    centers = []
 
-train_dataset = datasets.MNIST(
-    root="./data", train=True, download=True, transform=transform
-)
-test_dataset = datasets.MNIST(
-    root="./data", train=False, download=True, transform=transform
-)
-
-train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
-
-print(f"Training samples: {len(train_dataset)}")
-print(f"Test samples: {len(test_dataset)}")
-
-# 3. Initialize model, loss, and optimizer
-model = MNISTNet().to(device)
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-print("\nModel architecture:")
-print(model)
-
-
-# 4. Training function
-def train_epoch(model, loader, criterion, optimizer, device):
-    model.train()
-    running_loss = 0.0
-    correct = 0
-    total = 0
-
-    for batch_idx, (data, target) in enumerate(loader):
-        data, target = data.to(device), target.to(device)
-
-        optimizer.zero_grad()
-        output = model(data)
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
-
-        running_loss += loss.item()
-        _, predicted = output.max(1)
-        total += target.size(0)
-        correct += predicted.eq(target).sum().item()
-
-        if batch_idx % 100 == 0:
-            print(f"  Batch {batch_idx}/{len(loader)}, Loss: {loss.item():.4f}")
-
-    accuracy = 100.0 * correct / total
-    avg_loss = running_loss / len(loader)
-    return avg_loss, accuracy
-
-
-# 5. Evaluation function
-def evaluate(model, loader, criterion, device):
-    model.eval()
-    running_loss = 0.0
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for data, target in loader:
-            data, target = data.to(device), target.to(device)
-            output = model(data)
-            loss = criterion(output, target)
-
-            running_loss += loss.item()
-            _, predicted = output.max(1)
-            total += target.size(0)
-            correct += predicted.eq(target).sum().item()
-
-    accuracy = 100.0 * correct / total
-    avg_loss = running_loss / len(loader)
-    return avg_loss, accuracy
-
-
-# 6. Train the model
-print("\nTraining model...")
-num_epochs = 5
-
-for epoch in range(num_epochs):
-    print(f"\nEpoch {epoch + 1}/{num_epochs}")
-    train_loss, train_acc = train_epoch(
-        model, train_loader, criterion, optimizer, device
+    # This guy return contours which are the boundaries between black and white regions. But it basically returns bunch of stuff depending on the opencv you use but using return-2 we guarantee it returns the contours
+    contour_results = cv2.findContours(
+        morphed_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE
     )
-    test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+    contours = contour_results[-2]
 
-    print(f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.2f}%")
-    print(f"Test Loss: {test_loss:.4f}, Test Acc: {test_acc:.2f}%")
+    # here using first and zeroth moments we find the center for each contour, then draw a circle at each point
+    for cntr in contours:
+        M = cv2.moments(cntr)
+        cx = int(M["m10"] / M["m00"])
+        cy = int(M["m01"] / M["m00"])
+        centers.append((cx, cy))
+        cv2.circle(result, (cx, cy), 2, (0, 0, 255), 3)
+    return result, centers
 
-# 7. Save the model
-torch.save(model.state_dict(), "mnist_model.pth")
-print("\nModel saved as 'mnist_model.pth'")
+
+def distance(ordered_list, centers):
+    if centers is not None:
+        centers = np.array(centers).reshape(-1, 2)
+
+        fin_mat = np.zeros((10, 9))
+        for center in centers:
+            distance_mat = []
+            for row in ordered_list:
+                distance_row = []
+                for circle in row:
+                    distance_row.append(
+                        (circle[0] - center[0]) ** 2 + (circle[1] - center[1]) ** 2
+                    )
+                    distance_row = [int(x) for x in distance_row]
+                distance_mat.append(distance_row)
+            distance_mat = (distance_mat == np.array(distance_mat).min()) * 1
+            fin_mat = fin_mat + distance_mat
+
+        fin_mat = fin_mat.astype(int)
+        if (np.sum(fin_mat, 0).sum()) == 9:
+            return fin_mat
+        else:
+            print("The number placement of dots not correct!")
+
+
+def get_digits(fin_mat):
+    if fin_mat is not None:
+        student_no = ""
+        for j in range(0, 9):
+            for i, number in enumerate(fin_mat):
+                if number[j] == 1:
+                    student_no = student_no + str(i)
+        print(student_no)
+
+
+def centers_to_numbers(centers, circles, size):
+    circle_list = [tuple(i[:2].tolist()) for i in circles[0, :]]
+    circle_list = sorted(circle_list, key=lambda x: x[1])
+    if len(circle_list) == size:
+        circle_list = np.array(circle_list).reshape(10, 9, 2)
+        ordered_list = []
+        for j in circle_list:
+            ordered_list.append(sorted(j.tolist(), key=lambda x: x[0]))
+
+        (np.array(ordered_list))
+        omr_mat = distance(ordered_list, centers)
+        get_digits(omr_mat)
+    else:
+        print("Number of dots is not correct!")
 
 
 # 8. Functions to extract and preprocess red pencil digits
@@ -182,8 +126,14 @@ def get_grade(img_path, display=False):
 
 
 def preprocess_char(roi, size=28):
-    """Preprocess a single digit image for MNIST model."""
-    roi = cv2.bitwise_not(roi)  # white background, black text
+    """Preprocess a single digit image for MNIST model.
+
+    Converts black digit on white background -> white digit on black background (like MNIST)
+    """
+    # roi from get_grade is white digit on black background (from red mask)
+    # We need to keep it that way (white on black) to match MNIST
+    # So we DON'T invert here
+
     h, w = roi.shape
     scale = size / max(h, w)
     new_w, new_h = int(w * scale), int(h * scale)
@@ -192,8 +142,9 @@ def preprocess_char(roi, size=28):
     delta_h = size - new_h
     top, bottom = delta_h // 2, delta_h - delta_h // 2
     left, right = delta_w // 2, delta_w - delta_w // 2
+    # Pad with black (0) to match MNIST's black background
     padded = cv2.copyMakeBorder(
-        resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=255
+        resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
     )
     normalized = padded.astype("float32") / 255.0
     return normalized.reshape(1, size, size, 1)
@@ -221,108 +172,17 @@ def preprocess_for_pytorch(digit_img):
     return tensor, img_array
 
 
-# 9. Test with custom red pencil image
-print("\n" + "=" * 50)
-print("TESTING WITH CUSTOM RED PENCIL IMAGE")
-print("=" * 50)
+def show_processed(roi_digits):
+    for i, roi in enumerate(roi_digits):
+        preprocessed = manip.preprocess_char(roi)  # resize, pad, normalize
+        plt.subplot(2, len(roi_digits), i + 1)
+        plt.imshow(roi, cmap="gray")
+        plt.title(f"Raw {i}")
+        plt.axis("off")
 
-# Replace this with your actual image path
-test_image_path = "red_pencil_number.jpg"
+        plt.subplot(2, len(roi_digits), i + 1 + len(roi_digits))
+        plt.imshow(preprocessed[0, :, :, 0], cmap="gray")  # remove batch & channel dims
+        plt.title(f"Processed {i}")
+        plt.axis("off")
 
-try:
-    # Extract red digits from image
-    print(f"\nExtracting red digits from: {test_image_path}")
-    digits = get_grade(test_image_path, display=False)
-
-    if len(digits) == 0:
-        print("No red digits detected in the image!")
-    else:
-        print(f"Found {len(digits)} digit(s)")
-
-        # Process and predict each digit
-        predictions = []
-        fig, axes = plt.subplots(1, len(digits), figsize=(3 * len(digits), 3))
-        if len(digits) == 1:
-            axes = [axes]  # Make it iterable
-
-        model.eval()
-        for i, digit_img in enumerate(digits):
-            # Preprocess digit
-            preprocessed = preprocess_char(digit_img)
-            tensor, display_img = preprocess_for_pytorch(preprocessed)
-            tensor = tensor.to(device)
-
-            # Make prediction
-            with torch.no_grad():
-                output = model(tensor)
-                probabilities = torch.nn.functional.softmax(output, dim=1)
-                predicted_digit = output.argmax(dim=1).item()
-                confidence = probabilities[0, predicted_digit].item() * 100
-
-            predictions.append(predicted_digit)
-
-            # Display
-            axes[i].imshow(display_img, cmap="gray")
-            axes[i].set_title(
-                f"Digit {i + 1}\nPred: {predicted_digit}\nConf: {confidence:.1f}%"
-            )
-            axes[i].axis("off")
-
-            print(f"\nDigit {i + 1}:")
-            print(f"  Predicted: {predicted_digit}")
-            print(f"  Confidence: {confidence:.2f}%")
-
-        plt.tight_layout()
-        plt.show()
-
-        # Show complete number if multiple digits
-        if len(predictions) > 1:
-            complete_number = "".join(map(str, predictions))
-            print(f"\n{'=' * 50}")
-            print(f"Complete number: {complete_number}")
-            print(f"{'=' * 50}")
-
-except FileNotFoundError:
-    print(f"\nNote: Could not find test image at '{test_image_path}'")
-    print("To test with your own image:")
-    print("1. Take a photo of red pencil-written number(s) on white paper")
-    print("2. Save it as 'red_pencil_number.jpg' in the same directory")
-    print("3. Run this script again")
-    print("\nAlternatively, modify 'test_image_path' variable to point to your image.")
-except Exception as e:
-    print(f"\nError processing image: {e}")
-    import traceback
-
-    traceback.print_exc()
-
-# 10. Optional: Test with MNIST test set to verify model works
-print("\n" + "=" * 50)
-print("TESTING WITH MNIST TEST SET (Verification)")
-print("=" * 50)
-
-# Show some predictions from MNIST test set
-n_samples = 5
-test_iter = iter(test_loader)
-images, labels = next(test_iter)
-
-fig, axes = plt.subplots(1, n_samples, figsize=(15, 3))
-model.eval()
-with torch.no_grad():
-    for i in range(n_samples):
-        img = images[i : i + 1].to(device)
-        output = model(img)
-        pred_digit = output.argmax(dim=1).item()
-        true_digit = labels[i].item()
-
-        # Denormalize for display
-        img_display = images[i].squeeze().numpy()
-        img_display = img_display * 0.3081 + 0.1307
-
-        axes[i].imshow(img_display, cmap="gray")
-        axes[i].set_title(f"True: {true_digit}\nPred: {pred_digit}")
-        axes[i].axis("off")
-
-plt.tight_layout()
-plt.show()
-
-print("\nScript completed successfully!")
+    plt.show()
