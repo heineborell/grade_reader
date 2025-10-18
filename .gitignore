@@ -56,3 +56,4 @@ wheels/
 latex.out/
 
 *.png
+MNIST/

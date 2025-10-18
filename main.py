@@ -24,7 +24,8 @@ def main():
     if static:
         # get characters of grades and preprocess them for the model
         characters = manip.get_grade("cropped_grade.png")
-        # manip.show_processed(characters)
+        manip.show_processed(characters)
+        print(len(characters[0]))
 
         # get the centers circles for student numbers
         # centers, circles = aruco.show_image("cropped.png")
