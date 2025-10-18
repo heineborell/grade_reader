@@ -55,6 +55,6 @@ wheels/
 # latexrun
 latex.out/
 
-*.png
+# *.png
 MNIST/
 *.pth
