@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import manip
 import torch
 
 
@@ -72,7 +71,7 @@ def get_digits(fin_mat):
             for i, number in enumerate(fin_mat):
                 if number[j] == 1:
                     student_no = student_no + str(i)
-        print(student_no)
+        return student_no
 
 
 def centers_to_numbers(centers, circles, size):
@@ -86,7 +85,8 @@ def centers_to_numbers(centers, circles, size):
 
         (np.array(ordered_list))
         omr_mat = distance(ordered_list, centers)
-        get_digits(omr_mat)
+        student_no = get_digits(omr_mat)
+        return student_no
     else:
         print("Number of dots is not correct!")
 

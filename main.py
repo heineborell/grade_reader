@@ -1,8 +1,10 @@
 import cv2
 import aruco
 import manip
+import mnistpredict
 import numpy as np
 import matplotlib.pyplot as plt
+from torchvision.datasets import mnist
 
 
 def main():
@@ -18,22 +20,25 @@ def main():
     parameters = cv2.aruco.DetectorParameters()
     detector = cv2.aruco.ArucoDetector(dictionary, parameters)
 
-    static = True
+    static = False
     snapshot = True
 
     if static:
-        # get characters of grades and preprocess them for the model
-        characters = manip.get_grade("cropped_grade.png")
-        manip.show_processed(characters)
-        print(len(characters[0]))
+        # get the grade prediction
+        grade = mnistpredict.predict_digit("cropped_grade.png")
 
         # get the centers circles for student numbers
-        # centers, circles = aruco.show_image("cropped.png")
-        # aruco.centers_to_numbers(centers, circles, 90)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        centers, circles = aruco.show_image("cropped.png")
+        student_no = aruco.centers_to_numbers(centers, circles, 90)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
     else:
         cap = cv2.VideoCapture(0)  # You may need to change the device index
+        # Set fixed width and height
+        # fixed_width = 1280
+        # fixed_height = 720
+        # cap.set(cv2.CAP_PROP_FRAME_WIDTH, fixed_width)
+        # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, fixed_height)
         if not snapshot:
             while True:
                 _, img = cap.read()
@@ -88,7 +93,11 @@ def main():
                     aruco.crop_snapshot(frame_copy, form_box_img_number)
                     aruco.crop_snapshot(frame_copy, form_box_img_grade, number=False)
                     centers, circles = aruco.show_image("cropped_number.png")
-                    aruco.centers_to_numbers(centers, circles, 90)
+                    student_no = aruco.centers_to_numbers(centers, circles, 90)
+                    if student_no is not None:
+                        grade = mnistpredict.predict_digit("cropped_grade.png")
+
+                    print(student_no, grade)
                 if cv2.waitKey(1) & 0xFF == ord("q"):
                     break
 
