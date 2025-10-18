@@ -57,3 +57,4 @@ latex.out/
 
 *.png
 MNIST/
+*.pth

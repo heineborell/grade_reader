@@ -182,8 +182,14 @@ def get_grade(img_path, display=False):
 
 
 def preprocess_char(roi, size=28):
-    """Preprocess a single digit image for MNIST model."""
-    roi = cv2.bitwise_not(roi)  # white background, black text
+    """Preprocess a single digit image for MNIST model.
+
+    Converts black digit on white background -> white digit on black background (like MNIST)
+    """
+    # roi from get_grade is white digit on black background (from red mask)
+    # We need to keep it that way (white on black) to match MNIST
+    # So we DON'T invert here
+
     h, w = roi.shape
     scale = size / max(h, w)
     new_w, new_h = int(w * scale), int(h * scale)
@@ -192,8 +198,9 @@ def preprocess_char(roi, size=28):
     delta_h = size - new_h
     top, bottom = delta_h // 2, delta_h - delta_h // 2
     left, right = delta_w // 2, delta_w - delta_w // 2
+    # Pad with black (0) to match MNIST's black background
     padded = cv2.copyMakeBorder(
-        resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=255
+        resized, top, bottom, left, right, cv2.BORDER_CONSTANT, value=0
     )
     normalized = padded.astype("float32") / 255.0
     return normalized.reshape(1, size, size, 1)
@@ -227,7 +234,7 @@ print("TESTING WITH CUSTOM RED PENCIL IMAGE")
 print("=" * 50)
 
 # Replace this with your actual image path
-test_image_path = "red_pencil_number.jpg"
+test_image_path = "cropped_grade.png"
 
 try:
     # Extract red digits from image
@@ -239,16 +246,60 @@ try:
     else:
         print(f"Found {len(digits)} digit(s)")
 
-        # Process and predict each digit
-        predictions = []
-        fig, axes = plt.subplots(1, len(digits), figsize=(3 * len(digits), 3))
+        # Show original extracted digits (before preprocessing)
+        print("\n--- BEFORE PREPROCESSING ---")
+        fig1, axes1 = plt.subplots(1, len(digits), figsize=(3 * len(digits), 3))
         if len(digits) == 1:
-            axes = [axes]  # Make it iterable
+            axes1 = [axes1]
 
-        model.eval()
+        for i, digit_img in enumerate(digits):
+            axes1[i].imshow(digit_img, cmap="gray")
+            axes1[i].set_title(f"Original Digit {i + 1}\n(from red mask)")
+            axes1[i].axis("off")
+
+        plt.suptitle(
+            "Extracted Red Digits (Before Preprocessing)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        plt.tight_layout()
+        plt.show()
+
+        # Show preprocessed digits (after preprocessing)
+        print("\n--- AFTER PREPROCESSING ---")
+        fig2, axes2 = plt.subplots(1, len(digits), figsize=(3 * len(digits), 3))
+        if len(digits) == 1:
+            axes2 = [axes2]
+
+        preprocessed_images = []
         for i, digit_img in enumerate(digits):
             # Preprocess digit
             preprocessed = preprocess_char(digit_img)
+            preprocessed_images.append(preprocessed)
+
+            # Display preprocessed (inverted and centered)
+            display_img = preprocessed.squeeze()  # Remove extra dimensions
+            axes2[i].imshow(display_img, cmap="gray")
+            axes2[i].set_title(f"Preprocessed Digit {i + 1}\n(28x28, centered)")
+            axes2[i].axis("off")
+
+        plt.suptitle(
+            "Preprocessed Digits (After Preprocessing - Ready for Model)",
+            fontsize=14,
+            fontweight="bold",
+        )
+        plt.tight_layout()
+        plt.show()
+
+        # Process and predict each digit
+        print("\n--- PREDICTIONS ---")
+        predictions = []
+        fig3, axes3 = plt.subplots(1, len(digits), figsize=(3 * len(digits), 3))
+        if len(digits) == 1:
+            axes3 = [axes3]
+
+        model.eval()
+        for i, preprocessed in enumerate(preprocessed_images):
             tensor, display_img = preprocess_for_pytorch(preprocessed)
             tensor = tensor.to(device)
 
@@ -261,17 +312,26 @@ try:
 
             predictions.append(predicted_digit)
 
-            # Display
-            axes[i].imshow(display_img, cmap="gray")
-            axes[i].set_title(
-                f"Digit {i + 1}\nPred: {predicted_digit}\nConf: {confidence:.1f}%"
+            # Display with prediction
+            axes3[i].imshow(display_img, cmap="gray")
+            axes3[i].set_title(
+                f"Digit {i + 1}\nPrediction: {predicted_digit}\nConfidence: {confidence:.1f}%",
+                fontweight="bold",
+                color="green" if confidence > 90 else "orange",
             )
-            axes[i].axis("off")
+            axes3[i].axis("off")
 
             print(f"\nDigit {i + 1}:")
             print(f"  Predicted: {predicted_digit}")
             print(f"  Confidence: {confidence:.2f}%")
+            print(f"  Top 3 predictions:")
+            top3_probs, top3_indices = torch.topk(probabilities[0], 3)
+            for j, (prob, idx) in enumerate(zip(top3_probs, top3_indices)):
+                print(f"    {j + 1}. Digit {idx.item()}: {prob.item() * 100:.2f}%")
 
+        plt.suptitle(
+            "Final Predictions with Confidence", fontsize=14, fontweight="bold"
+        )
         plt.tight_layout()
         plt.show()
 
@@ -279,7 +339,11 @@ try:
         if len(predictions) > 1:
             complete_number = "".join(map(str, predictions))
             print(f"\n{'=' * 50}")
-            print(f"Complete number: {complete_number}")
+            print(f"COMPLETE NUMBER: {complete_number}")
+            print(f"{'=' * 50}")
+        elif len(predictions) == 1:
+            print(f"\n{'=' * 50}")
+            print(f"DETECTED DIGIT: {predictions[0]}")
             print(f"{'=' * 50}")
 
 except FileNotFoundError:
