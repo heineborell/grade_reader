@@ -21,7 +21,7 @@ def getGradeStudentId(static):
         grade = mnistpredict.predict_digit("cropped_grade.png")
 
         # get the centers circles for student numbers
-        centers, circles = aruco.show_image("cropped.png")
+        centers, circles = aruco.show_image("cropped_number.png")
         student_no = aruco.centers_to_numbers(centers, circles, 90)
 
         yield student_no, grade
