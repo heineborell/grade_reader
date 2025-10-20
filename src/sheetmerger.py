@@ -3,6 +3,7 @@ import tools
 import pandas as pd
 import xlwt
 from pathlib import Path
+from rich import print
 
 
 # get the column ids from original dataframe to replace them with simpler readeable ones
@@ -15,6 +16,10 @@ def get_column_ids(orig_columns, column_name):
 def push_values(df, values):
     orig_columns = list(df.columns)
     column_name = orig_columns[get_column_ids(orig_columns, "midterm")]
+    if (df["Username"] == int(values[0])).any():
+        print("[green]The student number exists![/green]")
+    else:
+        print("[red]The student doesnt number exist![/red]")
     df.loc[df["Username"] == int(values[0]), column_name] = values[1]
     return (df, column_name)
 
