@@ -21,8 +21,6 @@ def predict_digit(test_image_path):
         device = torch.device("cpu")
         print(f"Using device: {device} (CPU)")
 
-    print(f"PyTorch version: {torch.__version__}")
-
     # 3. Initialize model and load weights
     model = MNISTNet().to(device)
     model.load_state_dict(torch.load("mnist_model.pth", map_location=device))
@@ -32,8 +30,6 @@ def predict_digit(test_image_path):
 
     # 9. Test with custom red pencil image
     print("\n" + "=" * 50)
-    print("TESTING WITH CUSTOM RED PENCIL IMAGE")
-    print("=" * 50)
 
     try:
         # Extract red digits from image
