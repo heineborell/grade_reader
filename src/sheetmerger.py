@@ -16,14 +16,12 @@ def get_column_ids(orig_columns, column_name):
 def push_values(df, values, section_no):
     orig_columns = list(df.columns)
     column_name = orig_columns[get_column_ids(orig_columns, "midterm")]
-    print(df["Username"])
-    print(type(int(values[0])))
     if (df["Username"] == int(values[0])).any():
         print("[green]The student number exists![/green]")
         df.loc[df["Username"] == int(values[0]), column_name] = values[1]
         print(df["First Name"][df.loc[df["Username"] == int(values[0])].index[0]])
     else:
-        print("[red]The student doesnt number exist![/red]")
+        print("[red]The student number doesn't exist![/red]")
         section_no = None
 
     return (df, column_name, section_no)

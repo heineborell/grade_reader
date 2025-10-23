@@ -8,7 +8,7 @@ def main():
         "gc_2025CMN17.20BS105a02_fullgc_2025-10-21-13-45-52.csv",
         "gc_2025CMN17.20BS105a03_fullgc_2025-10-21-14-15-07.csv",
     ]
-    for student_no, grade in getGradeStudentId(static=True):
+    for student_no, grade in getGradeStudentId(static=False):
         print("Detected:", student_no, grade)
         if student_no and grade is not None:
             for i, path in enumerate(csv_paths):
